@@ -22,27 +22,36 @@ warn() { printf "\033[1;33m⚠️  %s\033[0m\n" "$1"; }
 say "Clearing macOS quarantine flag on this folder"
 xattr -dr com.apple.quarantine "$REPO_DIR" 2>/dev/null || true
 
-# --- 1. Homebrew --------------------------------------------------------
-if ! command -v brew >/dev/null 2>&1; then
-  say "Installing Homebrew (you may be asked for your Mac password)"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-fi
-# Make brew available in this shell regardless of Apple-Silicon/Intel path.
-if [ -x /opt/homebrew/bin/brew ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -x /usr/local/bin/brew ]; then
-  eval "$(/usr/local/bin/brew shellenv)"
-fi
-ok "Homebrew ready"
+# Load Homebrew into PATH if it's already installed, so we can see a
+# brew-installed basecamp CLI. We do NOT install brew here — only later, and
+# only if it turns out we actually need it.
+load_brew() {
+  if [ -x /opt/homebrew/bin/brew ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [ -x /usr/local/bin/brew ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+}
+load_brew
 
-# --- 2. basecamp CLI ----------------------------------------------------
-if ! command -v basecamp >/dev/null 2>&1; then
+# --- 1. basecamp CLI ----------------------------------------------------
+# Only install it (via Homebrew) if it isn't already on the PATH. If you
+# installed it another way — e.g. Basecamp's own install script — this is
+# skipped entirely and Homebrew is never touched.
+if command -v basecamp >/dev/null 2>&1; then
+  ok "basecamp CLI already installed ($(basecamp --version 2>/dev/null || echo present))"
+else
+  if ! command -v brew >/dev/null 2>&1; then
+    say "Installing Homebrew (needed to install the basecamp CLI — you may be asked for your Mac password)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    load_brew
+  fi
   say "Installing the basecamp CLI"
   brew install --cask basecamp/tap/basecamp-cli
+  ok "basecamp CLI ready ($(basecamp --version 2>/dev/null || echo installed))"
 fi
-ok "basecamp CLI ready ($(basecamp --version 2>/dev/null || echo installed))"
 
-# --- 3. Bun -------------------------------------------------------------
+# --- 2. Bun -------------------------------------------------------------
 if ! command -v bun >/dev/null 2>&1; then
   say "Installing Bun"
   curl -fsSL https://bun.sh/install | bash
@@ -55,11 +64,11 @@ if ! command -v bun >/dev/null 2>&1; then
 fi
 ok "Bun ready ($(bun --version))"
 
-# --- 4. Build + install the login service -------------------------------
+# --- 3. Build + install the login service -------------------------------
 say "Building the server and installing the login service"
 "$REPO_DIR/install.sh"
 
-# --- 5. Log into Basecamp ----------------------------------------------
+# --- 4. Log into Basecamp ----------------------------------------------
 say "Checking Basecamp login"
 if basecamp auth status --json 2>/dev/null | grep -q '"authenticated": true'; then
   ok "Already logged into Basecamp"
