@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.basecamp.mcp</string>
+
+    <!-- The compiled standalone binary. __BINARY__ is filled in by install.sh. -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>__BINARY__</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PORT</key>
+        <string>7331</string>
+        <!-- Absolute path to the basecamp CLI so it's found under launchd's
+             minimal PATH. Filled in by install.sh. -->
+        <key>BASECAMP_BIN</key>
+        <string>__BASECAMP_BIN__</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <!-- Start at login and keep it running. -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__LOGDIR__/basecamp-mcp.log</string>
+    <key>StandardErrorPath</key>
+    <string>__LOGDIR__/basecamp-mcp.log</string>
+</dict>
+</plist>

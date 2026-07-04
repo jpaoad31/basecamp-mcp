@@ -1,0 +1,24 @@
+{
+  "name": "basecamp-mcp",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts",
+    "build": "bun build ./index.ts --compile --outfile dist/basecamp-mcp",
+    "install-service": "./install.sh",
+    "uninstall-service": "./uninstall.sh",
+    "package": "./package.sh"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  }
+}
